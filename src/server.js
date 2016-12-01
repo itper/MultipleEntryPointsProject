@@ -149,4 +149,4 @@ function dealParam(json){
         param.push(o + '=' + json[o]);
     }
     return param.join('&');
-}
+} 
