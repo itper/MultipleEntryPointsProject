@@ -1,0 +1,80 @@
+.app-guide {
+    position: relative;
+    background-color: #fff;
+    border-bottom: 1px solid #cdcdcd;
+    padding: 0 90px 0 10px;
+}
+.app-guide .guide-cont {
+    position: relative;
+    display: block;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    font-weight: 500;
+    padding: 8px 0;
+}
+.app-guide .guide-logo {
+    float: left;
+    width: 42px;
+    height: 42px;
+    vertical-align: top;
+    margin-right: 10px;
+}
+.app-guide .guide-slogon,
+.app-guide .guide-dc {
+    color: #505050;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+.app-guide .guide-dc {
+    color: #878787;
+    font-size: 12px;
+    margin-top: 2px;
+}
+.app-guide .guide-btn {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    width: 80px;
+    height: 30px;
+    background-color: #62af01;
+    border: 1px solid #559801;
+    border-radius: 3px;
+    color: #fff;
+    font: 14px/28px helvetica neue, arial, hiragino sans gb, microsoft yahei, sans-serif;
+    text-align: center;
+    padding: 0;
+    margin-top: -15px;
+}
+.app-guide .guide-btn[disabled],
+.app-guide .guide-btn.disabled {
+    background-color: #fff;
+    border-color: #c8c6c4;
+    color: #333;
+}
+.app-guide .guide-cont.touch {
+    background-color: transparent;
+}
+.app-guide .guide-cont.touch::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -10px;
+    width: 100%;
+    height: 100%;
+    background-color: #f0f0f0;
+    padding: 0 90px 0 10px;
+    z-index: -1;
+}
+.app-guide .guide-cont.disabled.touch::before {
+    display: none;
+}
+.app-guide .guide-btn.touch {
+    background-color: #529301;
+}
+.app-guide .guide-btn[disabled].touch,
+.app-guide .guide-btn.disabled.touch {
+    background-color: #fff;
+}

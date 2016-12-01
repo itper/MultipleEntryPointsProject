@@ -1,0 +1,23 @@
+#pull_to_refresh_title{
+    text-align: center;
+    height:50px;
+    line-height: 50px;
+    margin-top: -50px;
+}
+#pull_to_refresh_loading{
+    transform: translateY(50px);
+    -webkit-transform: translateY(50px);
+}
+#pull_to_refresh_over{
+    transform: translateY(0);
+    -webkit-transform: translateY(0);
+    transition: all 0.2s ease 0s;
+}
+.pull_refresh_loading{
+    transform: translateY(50px);
+    -webkit-transform: translateY(50px);
+}
+.pull_refresh_loading_over{
+    transform: translateY(0) !important;
+    -webkit-transform: translateY(0) !important;
+}
