@@ -17,6 +17,12 @@ core.buildAll =function(){
 };
 core.buildEntry = function(target,cb){
     var cp = webpack(Helper.createConfig(target));
+    cp.plugin('compilation', function(compilation) {
+        // console.log('123');
+        compilation.plugin('html-webpack-plugin-after-emit', function(data, cb) {
+            cb();
+        });
+    });
     cp.run(function(e,r){
         if(e){
             console.log(colors.red(e));
@@ -28,6 +34,7 @@ core.buildEntry = function(target,cb){
 };
 core.build = function(cb){
     var cp = webpack(Helper.createGlobalConfig());
+
     cp.run(function(e,r){
         if(e){
             console.log(colors.red(e));
@@ -85,7 +92,11 @@ core.buildAndWatch = function(){
     wp.watch([], [options.sourcePath], Date.now() - 10000);
 };
 core.runDevServer = function(target){
-    var cp = webpack(Helper.createConfig(target));
+    var config = Helper.createConfig(target);
+    if(!config){
+        process.exit();
+    }
+    var cp = webpack(config);
     var server = new Server(cp,options);
     server.run();
 };

@@ -103,7 +103,7 @@ program.command('buildServerDll')
             spinner.stop();
         });
     });
-program.command('dev')
+program.command('dev [target]')
         .action(function(target){ 
             __HOT__ = true;
             var core = require('./core');

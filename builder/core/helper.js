@@ -25,13 +25,17 @@ Helper.prototype.findLib = function(){
     if(!this.libPath)return [];
     return glob.sync(path.join(this.libPath,'**/*.@(js|jsx)'),{}).map(function(file){return './'+path.relative(this.context,file);}.bind(this));
 };
-Helper.prototype.findEntryFile = function(file){
-    var f =  glob.sync(path.join(this.context,file+'.@(js|jsx)'));
+Helper.prototype.findEntryFile = function(file,cont){
+    var f =  glob.sync(path.join(this.context,file+(cont?'':'.@(js|jsx)')));
+    console.log(file);
     if(f && f.length>0){
         console.log(colors.green('找到入口文件 '+f[0]));
         return f;
     }else{
-        console.log(colors.red('未找到入口文件 '+path.join(this.context,file+'.@(js|jsx)')));
+        if(!cont){
+            return this.findEntryFile(file+'/'+this.options.entry,true);
+        }
+        console.log(colors.red('未找到入口文件 '+path.join(this.context,file+(cont?'':'.@(js|jsx)'))));
     }
 };
 Helper.prototype.findFileEntry = function(file){
@@ -84,7 +88,11 @@ Helper.prototype.createGlobalConfig = function(){
 };
 Helper.prototype.createConfig = function(target){
     var entry = {};
-    entry[target] = [this.findEntryFile(target)[0]];
+    var entryFile = this.findEntryFile(target);
+    if(!entryFile){
+        return;
+    }
+    entry[target] = [entryFile[0]];
     var config =  Config.createConfig(entry,this.options);
     console.log('__HOT__',__HOT__);
     if(__HOT__){
