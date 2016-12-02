@@ -6,146 +6,184 @@ var webpack = require('webpack');
 var HashedModuleIdsPlugin = require('../../plugin/HashedModuleIdsPlugin');
 var PreHtmlPlugin = require('../../plugin/PreHtmlPlugin');
 
-
-var stats={hash: true,progress:true,chunks: false,version: true,timings: true,assets: true,modules: false,reasons: true,
-    children: true,source: false,errors: true,errorDetails: true,warnings: true,publicPath: true
-};
-function Config(entry,opt,server){
+function Config(){
     this.module = {};
-    this.profile = true;
-    this.opt = opt;
-    console.log(entry);
-    this.entry = entry;
-    this.plugins = [];
     this.module.loaders = [];
     this.module.preLoaders = [];
+    this.plugins = [];
+
+    this.stats = {
+        hash: true,
+        progress:true,
+        chunks: false,
+        version: true,timings: true,assets: true,modules: false,reasons: true,
+        children: true,source: false,errors: true,errorDetails: true,warnings: true,publicPath: true
+    };
+    this.profile = true;
+    if(__DEV__){
+        this.devtool = "#source-map";
+    }
+}
+// module.exports = Config;
+module.exports.createConfig = function(entry,opt,serverSide){
+    const config = new Config();
+    config.output={
+        publicPath:opt.publicPath,
+        path:opt.outputPath,
+        filename:serverSide||__HOT__?'[name].js':'[name].[chunkhash].js',
+        chunkFilename:serverSide||__HOT__?'chunk-[name].js':'chunk-[name].[chunkhash].js'
+    };
     this.resolve = {
         alias: opt.alias,
-        extensions:opt.extensions,
+        extensions:opt.extensions
     };
-    this.eslint = {
+    config.entry = entry;
+    config.context=opt.sourcePath;
+    config.eslint = {
         configFile: path.join(__dirname, './eslint.js'),
         useEslintrc: false
     };
-    this.stats = stats;
-    this.context=opt.sourcePath;
-    if(__DEV__)
-        this.devtool = opt.devtool;
-    this.output={
-        publicPath:opt.publicPath,
-        path:opt.outputPath,
-        filename:server||__HOT__?'[name].js':'[name].[chunkhash].js',
-        chunkFilename:server||__HOT__?'chunk-[name].js':'chunk-[name].[chunkhash].js'
-    };
-
-
-
-    if(server){
-        this.target = 'node';
-        this.output.libraryTarget='commonjs2';
-        outputFilename = opt.manifestPath+'/'+'[name].manifest.commonjs2.json';
+    if(serverSide){
+        config.target = 'node';
+        config.output.libraryTarget='commonjs2';
     }
-    this.__getPreloader().__getLoader().__getPlugin(server);
-}
-Config.prototype.__getPlugin = function(server){
-    var type = server?'commonjs2':null;
-    this.plugins.push(new HashedModuleIdsPlugin());
-    this.plugins.push(new ExtractTextPlugin('./static/css/[name].[contenthash].css'));
-
-    this.plugins.push(new webpack.DllReferencePlugin(
-        {
+    var type = serverSide?'commonjs2':null;
+    //使用hash左右module名称
+    config.plugins.push(new HashedModuleIdsPlugin());
+    //将css资源单独打包
+    config.plugins.push(new ExtractTextPlugin('./static/css/[name].[contenthash].css'));
+    //引用DLL资源
+    config.plugins.push(new webpack.DllReferencePlugin({
+        context:path.join(__dirname,'../'), //absolute path
+        manifest:require(opt.manifestPath+'/vendor.manifest'+(serverSide?'.commonjs2':'')+'.json'),
+        sourceType:type,
+        name:serverSide?(outputPath+'/'+require(opt.manifestPath+'/vendor.manifest.commonjs2.json').name.replace(/_/g,'.')):null
+    }));
+    if(opt.libPath){
+        config.plugins.push(new webpack.DllReferencePlugin({
             context:path.join(__dirname,'../'),
-            manifest:require(this.opt.manifestPath+'/vendor.manifest'+(server?'.commonjs2':'')+'.json'),
+            manifest:require('../../dllconfig/lib.manifest'+(serverSide?'.commonjs2':'')+'.json'),
             sourceType:type,
-            name:server?(this.opt.outputPath+'/'+require(this.opt.manifestPath+'/vendor.manifest.commonjs2.json').name.replace(/_/g,'.')):null
-        }
-    ));
-    if(this.opt.libPath){
-        this.plugins.push(new webpack.DllReferencePlugin(
-            {
-                context:path.join(__dirname,'../'),
-                manifest:require('../../dllconfig/lib.manifest'+(server?'.commonjs2':'')+'.json'),
-                sourceType:type,
-                name:server?(this.opt.outputPath+'/'+require('../../dllconfig/lib.manifest.commonjs2.json').name.replace(/_/g,'.')):null
-            }
-        ));
-    }
-    for(var e in this.entry){
-        if(server)break;
-        this.plugins.push(
-            new HtmlwebpackPlugin(
-                {
-                    filename: path.dirname(e)+'/index.html',
-                    chunks: [e],
-                    template: this.opt.sourcePath + '/'+ path.dirname(e)+'/index.html'
-                }
-            )
-        );
-    }
-    this.plugins.push(new PreHtmlPlugin(this.opt));
-    if(!__DEV__){
-        this.plugins.push(new webpack.DefinePlugin({
-            "process.env": {
-                NODE_ENV: JSON.stringify("production")
-            }
+            name:serverSide?(outputPath+'/'+require('../../dllconfig/lib.manifest.commonjs2.json').name.replace(/_/g,'.')):null
         }));
-        this.plugins.push(new webpack.optimize.UglifyJsPlugin({
-                compress:{
-
-                },
-                output:{
-                    comments:false
-                }
-            })
-        );
     }
-    this.plugins.push(new webpack.ProvidePlugin(
-        this.opt.provide
+    for(const e in config.entry){
+        if(serverSide)break;
+        let htmlPath = path.dirname(e)+'/index.html';
+        config.plugins.push(new HtmlwebpackPlugin({
+            filename: htmlPath,
+            chunks: [e],
+            template: opt.sourcePath + '/'+ htmlPath
+        }));
+    }
+    config.plugins.push(new PreHtmlPlugin(opt));
+    config.plugins.push(new webpack.ProvidePlugin(
+        opt.provide
     ));
-    this.plugins.push( new WebpackMd5Hash());
-    return this;
-};
-Config.prototype.__getPreloader = function (){
-    this.module.preLoaders.push({
+    config.plugins.push( new WebpackMd5Hash());
+
+    config.module.preLoaders.push({
         test: /\.(js|jsx)$/,
         exclude: /node_modules/,
         loader: 'eslint-loader'
     });
-    return this;
 
-};
-Config.prototype.__getLoader = function (){
-    this.module.loaders.push({
+    config.module.loaders.push({
         test:/\.(js|jsx)$/,
         exclude:/node_modules/,
-        include:this.opt.sourcePath,
+        include:opt.sourcePath,
         loader:'babel',
-        query:require('./.babelrc')
+        query:require('./.babelrc')()
     });
-    this.module.loaders.push({
+    config.module.loaders.push({
         test:/\.(css|scss)$/,
         loader:ExtractTextPlugin.extract('style','css','postcss'),
         exclude:/node_modules/
     });
-    this.module.loaders.push({ test: /\.json$/, loader: 'json' })
-    this.module.loaders.push({
+    config.module.loaders.push({ test: /\.json$/, loader: 'json' });
+    config.module.loaders.push({
         test:/\.module_(css|scss)$/,
         loader:ExtractTextPlugin.extract('style','css?modules&importLoaders=1&localIdentName=[hash:base64:5]','postcss'),
         exclude:/node_modules/
     });
-    this.module.loaders.push({
+    config.module.loaders.push({
         test:/\.(?:jpg|gif|png|svg)$/,
         loaders:[
-            'url-loader?limit='+this.opt.dataurlLimit+'&name=img/[hash].[ext]',
+            'url-loader?limit='+opt.dataurlLimit+'&name=img/[hash].[ext]',
             'image-webpack'
         ]
     });
-    // this.module.loaders.push({
-    //     test:/\.(jpg|gif|png|svg)$/,
-    //     loader:'file-loader'
-    // });
-    // this.module.loaders.push({ test: require.resolve('jquery'), loader: 'exports?window.$!script' });
-    return this;
+
+    if(__DEV__) {
+        return config;
+    }
+    config.plugins.push(new webpack.DefinePlugin({
+        "process.env": {
+            NODE_ENV: JSON.stringify("production")
+        }
+    }));
+    config.plugins.push(new webpack.optimize.UglifyJsPlugin({
+            compress:{},
+            output:{comments:false}
+        })
+    );
+    return config;
+};
+module.exports.createDllConfig = function(entry,opt,serverSide){
+    const config = new Config();
+    config.entry = {vendor:opt.vendors};
+    config.entry.lib = entry;
+    var manifestPath = opt.manifestPath+'/'+'[name].manifest.json';
+    if(serverSide){
+        manifestPath = opt.manifestPath+'/'+'[name].manifest.commonjs2.json';
+    }
+    //文件输出路径
+    var outputFilename =__HOT__?'[name].js':'[name].[chunkhash]'+(serverSide?'.commonjs2':'')+'.js';
+    //输出的全局变量名,如果是libraryTarget为commonjs2,则输出exports = xxx;默认为'var',也就是输出var xxx =
+    var libraryName = __HOT__?'[name]':'[name]_[chunkhash]'+(serverSide?'_commonjs2':'');
+    config.output={
+        publicPath:opt.publicPath,
+        path:opt.outputPath,
+        filename:outputFilename,
+        library:libraryName
+    };
+    config.context=opt.sourcePath;
+    if(serverSide){
+        config.target = 'node';
+        config.output.libraryTarget='commonjs2';
+    }
+    config.module.loaders.push({
+        test:/\.(js|jsx)$/,
+        exclude:/node_modules/,
+        include:opt.sourcePath,
+        loader:'babel',
+        query:require('./.babelrc')(true)
+    });
+    config.plugins.push(new webpack.DllPlugin({
+        path:manifestPath,
+        //要和output输出的library名称要一致.
+        name:libraryName,
+        context:path.join(__dirname,'../')
+    }));
+    config.plugins.push(new HashedModuleIdsPlugin());
+    config.plugins.push(new webpack.ProvidePlugin(
+        opt.provide
+    ));
+    if(__DEV__)return config;
+    config.plugins.push(new webpack.DefinePlugin({
+        "process.env": {
+            NODE_ENV: JSON.stringify("production")
+        }
+    }));
+    config.plugins.push(new webpack.optimize.UglifyJsPlugin({
+        compress:{
+        },
+        output:{
+            comments:false
+        }
+    }));
+    return config;
+};
+module.exports.getServerConfig = function(entry,opt,serverSide){
 
 };
-module.exports = Config;

@@ -5,10 +5,8 @@ const fs = require("fs");
 const colors = require('colors');
 require('babel-polyfill');
 const webpackMiddleware = require('koa-webpack-middleware');
-const serveIndex = require('serve-index');
 const router = require('koa-router')();
 const convert = require('koa-convert');
-var isInit = false;
 function Server(compiler,config){
     this.config = config;
     var dev = webpackMiddleware.devMiddleware(compiler,{

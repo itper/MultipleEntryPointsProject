@@ -4,7 +4,6 @@ var Table = require('cli-table');
 const colors = require('colors');
 var webpack = require('webpack');
 var fs = require('fs-extra');
-var DllConfig = require('./config/webpack.dll.config');
 var Config = require('./config/webpack.config');
 
 var Helper =  function(options){
@@ -85,7 +84,7 @@ Helper.prototype.createGlobalConfig = function(){
 Helper.prototype.createConfig = function(target){
     var entry = {};
     entry[target] = [this.findEntryFile(target)[0]];
-    var config = new Config(entry,this.options);
+    var config =  Config.createConfig(entry,this.options);
     console.log('__HOT__',__HOT__);
     if(__HOT__){
         config.entry[target].unshift("eventsource-polyfill","webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000");
@@ -94,18 +93,16 @@ Helper.prototype.createConfig = function(target){
     return config;
 };
 Helper.prototype.createDllConfig = function(){
-    return new DllConfig(this.findLib(),this.options);
+    return  Config.createDllConfig(this.findLib(),this.options);
 };
 Helper.prototype.createServerConfig = function(target) {
-    var serverConfig = require('./config/webpack.server.config');
     var entry = {};
     entry[target] = [this.findEntryFile(target)[0]];
-    return new serverConfig.Config(entry,this.options,true);
-}
+    return  Config.createConfig(entry,this.options,true);
+};
 Helper.prototype.createServerDllConfig = function(){
-    var serverConfig = require('./config/webpack.server.config');
-    return  new serverConfig.DllConfig(this.findLib(),this.options,true);
-}
+    return   Config.createDllConfig(this.findLib(),this.options,true);
+};
 module.exports = Helper;
 
 

@@ -1,11 +1,7 @@
-
 module.exports = {
     root: true,
-
     parser: 'babel-eslint',
-
     plugins: [/*'import', */'flowtype', 'jsx-a11y', 'react'],
-
     env: {
         browser: true,
         commonjs: true,
@@ -13,7 +9,6 @@ module.exports = {
         jest: true,
         node: true
     },
-
     parserOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
@@ -23,7 +18,6 @@ module.exports = {
             experimentalObjectRestSpread: true
         }
     },
-
     settings: {
         'import/ignore': [
             'node_modules',
@@ -36,7 +30,6 @@ module.exports = {
             }
         }
     },
-
     rules: {
         'array-callback-return': 'warn',
         'default-case': ['warn', { commentPattern: '^no default$' }],
@@ -135,8 +128,6 @@ module.exports = {
         'unicode-bom': ['warn', 'never'],
         'use-isnan': 'warn',
         'valid-typeof': 'warn',
-
-
         'react/jsx-equals-spacing': ['warn', 'never'],
         'react/jsx-no-duplicate-props': ['warn', { ignoreCase: true }],
         'react/jsx-no-undef': 'warn',
@@ -151,12 +142,10 @@ module.exports = {
         'react/no-is-mounted': 'warn',
         'react/react-in-jsx-scope': 'warn',
         'react/require-render-return': 'warn',
-
         'jsx-a11y/aria-role': 'warn',
         'jsx-a11y/img-has-alt': 'warn',
         'jsx-a11y/img-redundant-alt': 'warn',
         'jsx-a11y/no-access-key': 'warn',
-
         'flowtype/define-flow-type': 'warn',
         'flowtype/require-valid-file-annotation': 'warn',
         'flowtype/use-flow-type': 'warn'

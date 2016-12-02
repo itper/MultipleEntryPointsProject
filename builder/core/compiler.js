@@ -2,12 +2,7 @@ const webpack = require('webpack');
 const options = require('../config.js');
 const Helper = require('./helper')(options);
 const path = require('path');
-
-function compiler(){
-
-}
-
-
+const compiler = {};
 compiler.getDllCompiler = function (){
     return webpack(Helper.createDllConfig());
 };
