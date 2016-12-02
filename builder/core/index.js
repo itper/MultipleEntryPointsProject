@@ -3,9 +3,9 @@ const options = require('../config.js');
 const colors = require('colors');
 const Watchpack = require("watchpack");
 const WebpackDevServer = require('webpack-dev-server');
-const compiler = require('./compiler');
 const Server = require('./server');
 const Helper = require('./helper')(options);
+const path = require('path');
 function core(){
 
 }
@@ -16,7 +16,7 @@ core.buildAll =function(){
     });
 };
 core.buildEntry = function(target,cb){
-    var cp = compiler.getCompiler(target);
+    var cp = webpack(Helper.createConfig(target));
     cp.run(function(e,r){
         if(e){
             console.log(colors.red(e));
@@ -27,7 +27,7 @@ core.buildEntry = function(target,cb){
     });
 };
 core.build = function(cb){
-    var cp = compiler.getGlobalCompiler();
+    var cp = webpack(Helper.createGlobalConfig());
     cp.run(function(e,r){
         if(e){
             console.log(colors.red(e));
@@ -39,7 +39,7 @@ core.build = function(cb){
 };
 
 core.buildServerEntry = function(target,cb){
-    var cp = compiler.getServerCompiler(target);
+    var cp = webpack(Helper.createServerConfig(entry));
     cp.run(function(e,r){
         if(e){
             console.log(colors.red(e));
@@ -49,8 +49,9 @@ core.buildServerEntry = function(target,cb){
         }
     });
 };
-core.buildServerDll = function(cb){
-    var cp = compiler.getServerDllCompiler();
+core.buildServerDll = function(libName,cb){
+    var cp;
+    cp = webpack(Helper.createServerDllConfig(libName||options.vendorLibName));
     cp.run(function(e,r){
         if(e){
             console.log(colors.red(e));
@@ -60,8 +61,9 @@ core.buildServerDll = function(cb){
         }
     });
 };
-core.buildDll = function(cb){
-    var cp = compiler.getDllCompiler();
+core.buildDll = function(libName,cb){
+    var cp;
+    cp = webpack(Helper.createDllConfig(libName||options.vendorLibName));
     cp.run(function(e,r){
         if(e){
             console.log(colors.red(e));
@@ -83,7 +85,7 @@ core.buildAndWatch = function(){
     wp.watch([], [options.sourcePath], Date.now() - 10000);
 };
 core.runDevServer = function(target){
-    var cp = compiler.getCompiler(target);
+    var cp = webpack(Helper.createConfig(target));
     var server = new Server(cp,options);
     server.run();
 };
@@ -97,7 +99,7 @@ function devServerForce(config,target){
     });
 }
 function server(entry,cb){
-    var compiler = compiler.getServerCompiler(entry);
+    var compiler = webpack(Helper.createServerConfig(entry));
     compiler.run(function(e,r){
         if(e){
             console.log(colors.red(e));

@@ -28,12 +28,13 @@ function Server(compiler,config){
     //将所有文件重定向到dev/hot中间件去处理.
     this.app.use(dev).use(hot).use(router.routes()).use(router.allowedMethods()).use(dev).use(hot);
     compiler.plugin('done',function(result){
-        console.log('构建完成',result);
+        console.log('构建完成');
     });
 }
 Server.prototype.run = function(){
     this.app.listen({port:this.config.port,hostname:'0.0.0.0'},function(){
         console.log(this.config.address);
+        console.log('building...');
     }.bind(this));
 };
 //加载dll文件

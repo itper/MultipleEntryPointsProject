@@ -1,5 +1,5 @@
 import React from 'react';
-import {Router, Route , browserHistory,Redirect } from 'react-router';
+import {Route , browserHistory,Redirect } from 'react-router';
 import DetailsPage from './container/detailsPage';
 if(typeof window==='undefined'){
     global.window={};

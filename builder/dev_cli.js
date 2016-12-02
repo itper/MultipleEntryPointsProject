@@ -23,32 +23,46 @@ function getVersion(){
     
 }();
 
-program.command('build')
-        .action(function(target){
-            __HOT__ = false;
-            var core = require('./core');
-            var config = require('./config.js');
-            spinner.start();
-            config.target = target;
-            if(typeof target==='string'){
-                core.buildEntry(target,function(){
-                    spinner.stop();
-                });
-            }else{
-                console.log(c.red('参数错误 build [target]'));
-                spinner.stop();
-            }
-        });
-program.command('buildDll')
-        .action(function(){
-            __HOT__ = false;
-            var core = require('./core');
-            var config = require('./config.js');
-            spinner.start();
-            core.buildDll(function(){
+program
+    .command('build [target]')
+    .description('构建指定入口')
+    .option('-d --dev_mode','dev_mode')
+    .option('-a --all','build all entry')
+    .action(function(target,options){
+        global.__DEV__ = options.dev_mode;
+        global.__HOT__ = false;
+        var core = require('./core');
+        spinner.start();
+        if(options.all){
+            core.build(function(){
                 spinner.stop();
             });
-        });
+            return;
+        }
+        var config = require('./config.js');
+        config.target = target;
+        if(typeof target==='string'){
+            core.buildEntry(target,function(){
+                spinner.stop();
+            });
+        }else{
+            console.log(c.red('参数错误 build [target]'));
+            spinner.stop();
+        }
+    });
+program
+    .command('buildDll [libName]')
+    .description('build dll')
+    .option('-d --dev_mode','dev mode')
+        .action(function(libName,options){
+            global.__DEV__ = options.dev_mode;
+            global.__HOT__ = false;
+            var core = require('./core');
+            spinner.start();
+            core.buildDll(libName,function(){
+                spinner.stop();
+            });
+    });
 program.command('buildAll')
         .action(function(){
             __HOT__ = false;

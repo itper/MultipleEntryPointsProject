@@ -64,7 +64,7 @@ Helper.prototype.friendlyLog = function(r){
         fs.outputJson('../log/'+json.hash+'.json',json,'utf8');
         var table = new Table({
             head:['name','Chunks','size'],
-            colWidths: [30, 10,15]
+            colWidths: [60, 10,15]
         });
         for(var t in json.assets){
             table.push([json.assets[t].name,json.assets[t].chunkNames.length,json.assets[t].size/1000+'kb']);
@@ -78,7 +78,8 @@ Helper.prototype.createGlobalConfig = function(){
         var chunk = path.parse(v).dir+'/'+path.parse(v).name;
         entry[chunk] = './'+v;
     });
-    var config = new Config(entry,this.options);
+    console.log(entry);
+    var config = Config.createConfig(entry,this.options);
     return config;
 };
 Helper.prototype.createConfig = function(target){
@@ -92,16 +93,18 @@ Helper.prototype.createConfig = function(target){
     }
     return config;
 };
-Helper.prototype.createDllConfig = function(){
-    return  Config.createDllConfig(this.findLib(),this.options);
+
+Helper.prototype.createDllConfig = function(name){
+    return  Config.createDllConfig(name,this.findLib(),this.options);
 };
+
 Helper.prototype.createServerConfig = function(target) {
     var entry = {};
     entry[target] = [this.findEntryFile(target)[0]];
     return  Config.createConfig(entry,this.options,true);
 };
-Helper.prototype.createServerDllConfig = function(){
-    return   Config.createDllConfig(this.findLib(),this.options,true);
+Helper.prototype.createServerDllConfig = function(name){
+    return   Config.createDllConfig(name,this.findLib(),this.options,true);
 };
 module.exports = Helper;
 

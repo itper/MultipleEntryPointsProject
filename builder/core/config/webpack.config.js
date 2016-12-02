@@ -33,7 +33,7 @@ module.exports.createConfig = function(entry,opt,serverSide){
         filename:serverSide||__HOT__?'[name].js':'[name].[chunkhash].js',
         chunkFilename:serverSide||__HOT__?'chunk-[name].js':'chunk-[name].[chunkhash].js'
     };
-    this.resolve = {
+    config.resolve = {
         alias: opt.alias,
         extensions:opt.extensions
     };
@@ -129,10 +129,14 @@ module.exports.createConfig = function(entry,opt,serverSide){
     );
     return config;
 };
-module.exports.createDllConfig = function(entry,opt,serverSide){
+module.exports.createDllConfig = function(libName,entry,opt,serverSide){
     const config = new Config();
-    config.entry = {vendor:opt.vendors};
-    config.entry.lib = entry;
+    config.entry = {};
+    if(libName === opt.vendorLibName) {
+        config.entry[opt.vendorLibName]  = opt.vendors;
+    }else{
+        config.entry[libName] = entry;
+    }
     var manifestPath = opt.manifestPath+'/'+'[name].manifest.json';
     if(serverSide){
         manifestPath = opt.manifestPath+'/'+'[name].manifest.commonjs2.json';
@@ -141,6 +145,8 @@ module.exports.createDllConfig = function(entry,opt,serverSide){
     var outputFilename =__HOT__?'[name].js':'[name].[chunkhash]'+(serverSide?'.commonjs2':'')+'.js';
     //输出的全局变量名,如果是libraryTarget为commonjs2,则输出exports = xxx;默认为'var',也就是输出var xxx =
     var libraryName = __HOT__?'[name]':'[name]_[chunkhash]'+(serverSide?'_commonjs2':'');
+    var type = serverSide?'commonjs2':null;
+
     config.output={
         publicPath:opt.publicPath,
         path:opt.outputPath,
@@ -159,6 +165,14 @@ module.exports.createDllConfig = function(entry,opt,serverSide){
         loader:'babel',
         query:require('./.babelrc')(true)
     });
+    if(libName !== opt.vendorLibName){
+        config.plugins.push(new webpack.DllReferencePlugin({
+            context:path.join(__dirname,'../'),
+            manifest:require(opt.manifestPath+'/'+opt.vendorLibName+'.manifest'+(serverSide?'.commonjs2':'')+'.json'),
+            sourceType:type,
+            name:serverSide?(outputPath+'/'+require(opt.manifestPath+'/'+opt.vendorLibName+'.manifest.commonjs2.json').name.replace(/_/g,'.')):null
+        }));
+    }
     config.plugins.push(new webpack.DllPlugin({
         path:manifestPath,
         //要和output输出的library名称要一致.
@@ -169,7 +183,7 @@ module.exports.createDllConfig = function(entry,opt,serverSide){
     config.plugins.push(new webpack.ProvidePlugin(
         opt.provide
     ));
-    if(__DEV__)return config;
+     if(__DEV__)return config;
     config.plugins.push(new webpack.DefinePlugin({
         "process.env": {
             NODE_ENV: JSON.stringify("production")

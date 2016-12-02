@@ -13,8 +13,9 @@ PreHtmlPlugin.prototype.apply = function(compiler){
                 ctx.opt.manifestPath+'/lib.manifest.json'
             ];
             var globalValue = '';
+            console.log(path.dirname(file.outputName));
             //项目路径
-            globalValue+='<script>window.WEBPACK_TPATH="'+path.dirname(config.target)+'"</script>';
+            globalValue+='<script>window.WEBPACK_TPATH="'+path.dirname(file.outputName)+'"</script>';
             //时间戳
             globalValue+='<script>window.START_TIMESTAMP = Date.now();</script>';
             //引用全局共同库
