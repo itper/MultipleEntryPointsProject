@@ -30,6 +30,9 @@ module.exports = {
             }
         }
     },
+    globals: {
+        __webpack_public_path__: true,
+    },
     rules: {
         'array-callback-return': 'warn',
         'default-case': ['warn', { commentPattern: '^no default$' }],

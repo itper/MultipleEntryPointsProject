@@ -1,11 +1,12 @@
 var path = require('path');
-var PORT = 80;
+var PORT = 9130;
+const HOST = '//local.itper.top'
 module.exports = {
-     address:'http://wssta.ganji.com',
+     address:HOST,
      outputPath: path.join(__dirname,'../','dist'),
      buildPath:path.join(__dirname),
      // publicPath:'http://public.chendi.cn/webpack/project/dist/',
-     publicPath:__HOT__?'//wssta.ganji.com'+(PORT===0?'':':'+PORT)+"/":'//wssta.ganji.com/dist/',//like 'http://public.chendi.cn/webpack-project1/dist/',
+     publicPath:__HOT__?HOST+(PORT===0?'':':'+PORT)+"/":HOST,//like 'http://public.chendi.cn/webpack-project1/dist/',//cdn地址如require.ensure加载url
      sourcePath: path.join(__dirname,'../','src'),
      cachePath: path.join(__dirname,'../','.cache'),
      libPath: path.join(__dirname,'../src','lib'),

@@ -21,7 +21,24 @@ module.exports = function(isDll) {
                 polyfill: false,
                 regenerator: true,
                 moduleName: path.dirname(require.resolve('babel-runtime/package'))
-            }]
+            }],
+            require.resolve('babel-plugin-transform-decorators-legacy'),
+            [
+                require.resolve('babel-plugin-react-css-modules'),
+                {
+                    "context": path.join(process.cwd(), 'src'),
+                    "generateScopedName": "[local]-[hash:base64:5]",
+                    "filetypes": {
+                    ".scss": {
+                        "syntax": "postcss-scss"
+                    },
+                    ".less": {
+                        "syntax": "postcss-less"
+                    }
+                    },
+                    "webpackHotModuleReloading": true
+                }
+            ]
         ],
         env: !isDll&&__HOT__ ? ({development: {presets: ["react-hmre"]}}) : {}
     };

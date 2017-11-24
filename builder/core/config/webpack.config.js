@@ -5,7 +5,15 @@ var path = require('path');
 var webpack = require('webpack');
 var HashedModuleIdsPlugin = require('../../plugin/HashedModuleIdsPlugin');
 var PreHtmlPlugin = require('../../plugin/PreHtmlPlugin');
-
+var px2rem = require('postcss-pxtorem')({
+  rootValue: 75,
+  propList: ['*']
+});
+var autoprefixer = require('autoprefixer')({
+  browsers: [
+    'ie >= 9'
+  ]
+});
 function Config(){
     this.module = {};
     this.module.loaders = [];
@@ -43,9 +51,22 @@ module.exports.createConfig = function(entry,opt,serverSide){
         configFile: path.join(__dirname, './eslint.js'),
         useEslintrc: false
     };
+    config.postcss = function() {
+        return [
+            autoprefixer,
+            px2rem
+        ]
+    };
+    config.externals = [
+        // test: 'var Test_1',
+        {
+            test: 'var Test',//this === window/node/this === global
+            test1: 'this Test.1'//this['test.1-1']通过应用this的字符串属性可以引用全局属性
+        }
+    ];
     if(serverSide){
         config.target = 'node';
-        config.output.libraryTarget='commonjs2';
+        config.output.libraryTarget='commonjs';
     }
     var type = serverSide?'commonjs2':null;
     //使用hash左右module名称
@@ -103,7 +124,12 @@ module.exports.createConfig = function(entry,opt,serverSide){
     config.module.loaders.push({ test: /\.json$/, loader: 'json' });
     config.module.loaders.push({
         test:/\.module_(css|scss)$/,
-        loader:ExtractTextPlugin.extract('style','css?modules&importLoaders=1&localIdentName=[hash:base64:5]','postcss'),
+        loader:ExtractTextPlugin.extract('style','css?modules&importLoaders=1&localIdentName=[local]-[hash:base64:5]','postcss', 'less'),
+        exclude:/node_modules/
+    });
+    config.module.loaders.push({
+        test:/\.less$/,
+        loaders:['style','css?modules&importLoaders=1&localIdentName=[local]-[hash:base64:5]','postcss','less'],
         exclude:/node_modules/
     });
     config.module.loaders.push({
@@ -122,11 +148,11 @@ module.exports.createConfig = function(entry,opt,serverSide){
             NODE_ENV: JSON.stringify("production")
         }
     }));
-    config.plugins.push(new webpack.optimize.UglifyJsPlugin({
-            compress:{},
-            output:{comments:false}
-        })
-    );
+    // config.plugins.push(new webpack.optimize.UglifyJsPlugin({
+    //         compress:{},
+    //         output:{comments:false}
+    //     })
+    // );
     return config;
 };
 module.exports.createDllConfig = function(libName,entry,opt,serverSide){
@@ -189,13 +215,13 @@ module.exports.createDllConfig = function(libName,entry,opt,serverSide){
             NODE_ENV: JSON.stringify("production")
         }
     }));
-    config.plugins.push(new webpack.optimize.UglifyJsPlugin({
-        compress:{
-        },
-        output:{
-            comments:false
-        }
-    }));
+    // config.plugins.push(new webpack.optimize.UglifyJsPlugin({
+    //     compress:{
+    //     },
+    //     output:{
+    //         comments:false
+    //     }
+    // }));
     return config;
 };
 module.exports.getServerConfig = function(entry,opt,serverSide){
