@@ -3,6 +3,7 @@ const glob = require('glob');
 const Koa = require('koa');
 const fs = require("fs");
 const colors = require('colors');
+const static = require('koa-static');//>3.0.0
 require('babel-polyfill');
 const webpackMiddleware = require('koa-webpack-middleware');
 const router = require('koa-router')();
@@ -21,6 +22,12 @@ function Server(compiler,config){
 
     this.loadDll(compiler.outputFileSystem);
     this.app = new Koa();
+    this.app.use(function(ctx, next) {
+        if (/^\/(src|dist|static)\//.test(ctx.request.url)){
+            return static(path.join(__dirname, '../../'))(ctx, next);
+        }
+        next();
+    });
     router.get('*',function(ctx,next){
         ctx.req.url = '/'+path.dirname(config.target);
         next();
